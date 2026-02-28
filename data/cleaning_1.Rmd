@@ -1,0 +1,33 @@
+---
+title: "Cleaning 1"
+author: "Raja Chinnakotla"
+date: "2/28/26"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyr)
+library(readxl)
+library(dplyr)
+```
+
+>> Cleaning the data for languages
+
+```{r}
+language <- read_excel("language_mother_tounge_city.xls")
+language<- language %>% select(-...9, -...10, -...12, -...13, -...15, -...16)
+language <- language[-1, ]
+colnames(language) <- language[1, ]
+language <- language[-1, ]
+language <- language %>% drop_na() %>%
+  filter(grepl("000$", MOTHER)) %>%
+  group_by(TOWN) %>%
+  mutate(TOTAL = as.numeric(TOTAL),
+    PERCENT = round(TOTAL/sum(TOTAL) * 100, 5))
+View(language)
+```
+
+
+
+
+
