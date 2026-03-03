@@ -9,6 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyr)
 library(readxl)
 library(dplyr)
+library(ggplot2)
 ```
 
 >> Cleaning the data for languages
@@ -25,7 +26,21 @@ language <- language %>% drop_na() %>%
   mutate(TOTAL = as.numeric(TOTAL),
     PERCENT = round(TOTAL/sum(TOTAL) * 100, 5))
 View(language)
+
+lang_dist <- unique(language$`AREA NAME`)
 ```
+
+```{r}
+towns <- read_excel("town_directory.xls")
+towns <- towns %>% select(DIST_CODE, THSIL_CODE, TOWN_CODE, TOWN_NAME, CLASS, C_STATUS, AREA, POP_2001, DENSITY) %>% rename(TOWN = TOWN_CODE) %>%
+  drop_na() %>%
+  mutate(AREA = as.numeric(AREA),
+         POP_2001 = as.numeric(POP_2001),
+         DENSITY = as.numeric(DENSITY))
+View(towns)
+
+```
+
 
 
 
