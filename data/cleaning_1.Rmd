@@ -42,7 +42,167 @@ View(towns)
 ```
 
 
+```{r}
 
 
+# Re-read skipping the messy multi-row headers
+raw <- read_excel("religion_town.xls", col_names = FALSE, skip = 4)
+
+# ── 2. Assign clean column names ─────────────────────────────────────────────
+col_names <- c(
+  "table_name", "state_code", "dist_code", "tehsil_code", "town_code", "area_name",
+  "total_rural_urban",
+  "total_persons", "total_males", "total_females",
+  "hindu_persons", "hindu_males", "hindu_females",
+  "muslim_persons", "muslim_males", "muslim_females",
+  "christian_persons", "christian_males", "christian_females",
+  "sikh_persons", "sikh_males", "sikh_females",
+  "buddhist_persons", "buddhist_males", "buddhist_females",
+  "jain_persons", "jain_males", "jain_females",
+  "other_religion_persons", "other_religion_males", "other_religion_females",
+  "religion_not_stated_persons", "religion_not_stated_males", "religion_not_stated_females"
+)
+colnames(raw) <- col_names
+
+# ── 3. Clean: remove NA rows, number rows, Gujarat state-level rows ───────────
+religion_clean <- raw %>%
+  # Remove rows where area_name is NA or blank
+  filter(!is.na(area_name), area_name != "") %>%
+  # Remove leftover header rows (the column-number row)
+  filter(!total_persons %in% c("1", "Persons")) %>%
+  # Convert codes to numeric so filtering works correctly
+  mutate(
+    dist_code   = as.numeric(dist_code),
+    state_code  = as.numeric(state_code),
+    tehsil_code = as.numeric(tehsil_code),
+    town_code   = as.numeric(town_code)
+  ) %>%
+  # Remove Gujarat state-level rows (dist_code == 0)
+  filter(dist_code != 0 & town_code != 0) %>%
+  # Convert all population columns to numeric
+  mutate(across(total_persons:religion_not_stated_females, as.numeric))
+
+# ── 4. Preview ────────────────────────────────────────────────────────────────
+View(religion_clean)
+glimpse(religion_clean)
+```
+
+
+```{r}
+religion_clean <- religion_clean %>%
+  mutate(town_code = as.numeric(town_code))
+
+language <- language %>%
+  mutate(TOWN = as.numeric(TOWN))
+
+town_dir <- towns %>%
+  mutate(TOWN = as.numeric(TOWN))
+
+# ── Join all three dataframes ─────────────────────────────────────────────────
+combined <- religion_clean %>%
+  inner_join(language, by = c("town_code" = "TOWN")) %>%
+  inner_join(town_dir,  by = c("town_code" = "TOWN"))
+
+# ── Preview ───────────────────────────────────────────────────────────────────
+glimpse(combined)
+View(combined)
+```
+
+
+> working to combine basically everything ugh
+
+```{r}
+clean_combine <- combined %>% select(table_name, area_name, town_code, state_code, dist_code, total_persons, hindu_persons, muslim_persons, christian_persons, sikh_persons, jain_persons, buddhist_persons, jain_persons, other_religion_persons, `MOTHER TONGUE`, PERCENT, AREA) %>%
+  group_by(town_code) %>%
+  mutate(pop_per_person = total_persons / AREA) %>%
+  drop_na()
+
+View(clean_combine)
+```
+
+```{r}
+riots <- read.csv("communal_riots_table.csv") %>%
+  mutate(across(everything(), ~replace_na(., 0))) %>% mutate(dist_code = case_when(
+    District %in% c("A'bad City", "A'bad Rural")         ~ 7,
+    District %in% c("Vadodara City", "Vadodara Rural", 
+                    "Westpol Vadodara")                   ~ 19,
+    District %in% c("Surat City", "Surat Rural")         ~ 18,
+    District %in% c("Rajkot City", "Rajkot Rural")       ~ 22,
+    District == "Anand"                                   ~ 2,
+    District == "Godhra"                                  ~ 16,
+    District == "Sabarkantha"                             ~ 23,
+    District == "Kheda"                                   ~ 10,
+    District == "Mehsana"                                 ~ 13,
+    District == "Banaskantha"                             ~ 4,
+    District == "Bharuch"                                 ~ 5,
+    District == "Gandhinagar"                             ~ 6,
+    District == "Amreli"                                  ~ 1,
+    District == "Junagadh"                                ~ 9,
+    District == "Dahod"                                   ~ 8,
+    District == "Narmada"                                 ~ 14,
+    District == "Patan"                                   ~ 17,
+    District == "Ahwa-Dang"                               ~ 26,
+    District == "Jamnagar"                                ~ 11,
+    District == "Navsari"                                 ~ 15,
+    District == "Porbandar"                               ~ 20,
+    District == "Valsad"                                  ~ 25,
+    District == "Surendranagar"                           ~ 24,
+    District == "Bhavnagar"                               ~ 3,
+    District == "Kutch-Bhuj"                              ~ 12,
+    TRUE ~ NA_real_
+  ))  %>%
+  filter(Sr_No != "Total") %>%          # remove total row
+  mutate(District = case_when(
+    District %in% c("A'bad City", "A'bad Rural")             ~ "Ahmedabad",
+    District %in% c("Vadodara City", "Vadodara Rural",
+                    "Westpol Vadodara")                       ~ "Vadodara",
+    District %in% c("Surat City", "Surat Rural")             ~ "Surat",
+    District %in% c("Rajkot City", "Rajkot Rural")           ~ "Rajkot",
+    TRUE ~ District
+  )) %>%
+  group_by(dist_code, District) %>%
+  summarise(
+    Dargah       = sum(Dargah,       na.rm = TRUE),
+    Masjid       = sum(Masjid,       na.rm = TRUE),
+    Temple       = sum(Temple,       na.rm = TRUE),
+    Church       = sum(Church,       na.rm = TRUE),
+    Total        = sum(Total,        na.rm = TRUE),
+    Madresa      = sum(Madresa,      na.rm = TRUE),
+    Repaired     = sum(Repaired,     na.rm = TRUE),
+    Not_Repaired = sum(Not_Repaired, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+
+View(riots)
+```
+
+```{r}
+final <- clean_combine %>%
+  inner_join(riots, by = "dist_code")
+
+View(final)
+```
+
+
+```{r}
+final %>%
+  group_by(District, dist_code) %>%
+  summarise(
+    total_persons = sum(total_persons, na.rm = TRUE),
+    Masjid        = first(Masjid),
+    .groups = "drop"
+  ) %>%
+  ggplot(aes(x = log(total_persons), y = Masjid, label = District)) +
+  geom_point(color = "steelblue", size = 3) +
+  geom_text(vjust = -0.8, size = 3) +
+  labs(
+    title = "District Population vs Masjids Destroyed (2002)",
+    x     = "Total Population",
+    y     = "Masjids Destroyed"
+  ) +
+  theme_minimal() +
+  geom_smooth(method = "lm")
+```
 
 

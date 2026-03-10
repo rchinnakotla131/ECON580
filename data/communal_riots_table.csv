@@ -1,0 +1,32 @@
+Sr_No,District,Dargah,Masjid,Temple,Church,Total,Madresa,Repaired,Not_Repaired,Dist_Code
+1,A'bad City,38,40,8,,86,1,53,34,7
+2,Vadodara City,8,13,1,,22,,21,1,19
+3,Surat City,3,9,1,,13,1,11,2,22
+4,Rajkot City,6,1,,,7,,6,1,9
+5,Anand,25,45,4,,74,4,47,28,15
+6,Godhra,14,30,,,44,4,19,26,17
+7,Sabarkantha,51,17,,,68,14,58,23,5
+8,Kheda,43,20,1,,64,2,53,11,16
+9,Mehsana,19,10,,,29,1,17,13,4
+10,Banaskantha,,,,,,,,,2
+11,Bharuch,2,5,,,7,,7,,21
+12,Gandhinagar,19,4,2,,25,,18,7,6
+13,Amreli,,,,,,,,,13
+14,Junagadh,11,2,,,13,1,6,5,12
+15,A'bad Rural,14,10,1,,25,1,24,1,7
+16,Dahod,6,13,,3,22,1,22,1,
+17,Narmada,,,,,,1,1,,20
+18,Patan,8,4,,,12,,12,,3
+19,Vadodara Rural,8,7,,,15,4,18,1,19
+20,Ahwa-Dang,,,,,,,,,
+21,Jamnagar,,,,,,,,,10
+22,Navsari,,,,,,,,,24
+23,Porbandar,4,,,,4,,4,,11
+24,Surat Rural,,,,,,,,,22
+25,Valsad,,1,,,1,,1,,25
+26,Surendranagar,,1,,,1,,1,,8
+27,Bhavnagar,1,3,1,,5,1,6,,14
+28,Rajkot Rural,3,1,,,4,,1,3,9
+29,Kutch-Bhuj,2,2,2,,6,,5,,1
+30,Westpol Vadodara,,2,,,2,,2,,
+Total,,285,240,21,3,649,36,413,167,
