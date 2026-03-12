@@ -5,7 +5,7 @@ date: "2/28/26"
 output: html_document
 ---
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 library(tidyr)
 library(readxl)
 library(dplyr)
@@ -179,7 +179,9 @@ View(riots)
 
 ```{r}
 final <- clean_combine %>%
-  inner_join(riots, by = "dist_code")
+  inner_join(riots, by = "dist_code") %>%
+  mutate(total_muslim_destroyed = Dargah + Masjid)
+  
 
 View(final)
 ```
@@ -205,4 +207,60 @@ final %>%
   geom_smooth(method = "lm")
 ```
 
+```{r}
+final %>%
+  group_by(District, dist_code) %>%
+  summarise(
+    total_persons = sum(total_persons, na.rm = TRUE),
+    total_muslim_destroyed       = first(total_muslim_destroyed),
+    .groups = "drop"
+  ) %>%
+  ggplot(aes(x = total_persons, y = total_muslim_destroyed, label = District)) +
+  geom_point(color = "midnightblue", size = 3) +
+  geom_text(vjust = -0.8, size = 3) +
+  labs(
+    title = "District Population vs Muslim Monuments Destroyed (2002)",
+    x     = "log Population",
+    y     = "Muslim Monuments Destroyed"
+  ) +
+  theme_minimal() +
+  geom_smooth(method = "lm")
+  
+```
+
+```{r}
+#muslim_lm <- lm(total_muslim_destroyed~1+log(total_persons)+pop_per_person, data = final)
+#summary(muslim_lm)
+#plot(muslim_lm, which = 1:2)
+```
+
+```{r}
+final_lm <- final %>% 
+  filter(`MOTHER TONGUE` == "5 GUJARATI") %>% 
+  group_by(District, dist_code) %>%
+  summarize(
+    PERCENT = mean(PERCENT, na.rm = TRUE),
+    total_muslim_destroyed = mean(total_muslim_destroyed, na.rm = TRUE),
+    pop_per_person = mean(pop_per_person, na.rm = TRUE),
+  )
+
+final_lm %>%
+  ggplot(aes(x = PERCENT, y = total_muslim_destroyed, label = District)) +
+  geom_point(color = "midnightblue", size = 3) +
+  geom_text(vjust = -0.8, size = 3) +
+  labs(
+    title = "Gujarati Language vs Muslim Monuments Destroyed (2002)",
+    x = "Percent Gujarati Speaker",
+    y = "Muslim Monuments Destroyed"
+  ) +
+  theme_minimal() +
+  geom_smooth(method = "lm")
+```
+
+```{r}
+regression_1 <- lm(total_muslim_destroyed~1+PERCENT+log(pop_per_person), data = final_lm)
+
+summary(regression_1)
+plot(regression_1, which = 1:2)
+```
 
