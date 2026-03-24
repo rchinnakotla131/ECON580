@@ -1,0 +1,56 @@
+---
+title: "Cleaning 2"
+author: "Raja Chinnakotla"
+date: "3/12/26"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(tidyr)
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(maps)
+# REMOVED: spacyr - too slow for your laptop
+```
+
+
+```{r load-data}
+sents <- read_csv("sents-IndiaPoliceEvents.csv")
+docs  <- read_csv("docs-IndiaPoliceEvents.csv")
+meta  <- read_csv("metadate-IndiaPoliceEvents.csv")
+```
+
+```{r join}
+data <- sents %>%
+  left_join(meta, by = "doc_id")
+
+unique_texts <- data %>% distinct(doc_id, full_text)
+```
+
+```{r city-detection}
+library(stringr)
+
+data(world.cities)
+india_cities <- world.cities %>%
+  filter(country.etc == "India") %>%
+  pull(name) %>%
+  tolower()
+
+city_pattern <- paste0("\\b(", paste(india_cities, collapse = "|"), ")\\b")
+
+unique_texts <- unique_texts %>%
+  mutate(cities_found = str_extract_all(full_text, regex(city_pattern, ignore_case = TRUE)),
+         cities_found = sapply(cities_found, function(x) {
+           if (length(x) == 0) return(NA)
+           paste(unique(tolower(x)), collapse = ", ")
+         }))
+
+head(unique_texts %>% select(doc_id, cities_found))
+```
+
+```{r}
+print(unique_texts %>% select(doc_id, cities_found))
+```
+

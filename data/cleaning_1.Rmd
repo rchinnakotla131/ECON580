@@ -122,44 +122,41 @@ View(clean_combine)
 
 ```{r}
 riots <- read.csv("communal_riots_table.csv") %>%
-  mutate(across(everything(), ~replace_na(., 0))) %>% mutate(dist_code = case_when(
-    District %in% c("A'bad City", "A'bad Rural")         ~ 7,
-    District %in% c("Vadodara City", "Vadodara Rural", 
-                    "Westpol Vadodara")                   ~ 19,
-    District %in% c("Surat City", "Surat Rural")         ~ 18,
-    District %in% c("Rajkot City", "Rajkot Rural")       ~ 22,
-    District == "Anand"                                   ~ 2,
-    District == "Godhra"                                  ~ 16,
-    District == "Sabarkantha"                             ~ 23,
-    District == "Kheda"                                   ~ 10,
-    District == "Mehsana"                                 ~ 13,
-    District == "Banaskantha"                             ~ 4,
-    District == "Bharuch"                                 ~ 5,
-    District == "Gandhinagar"                             ~ 6,
-    District == "Amreli"                                  ~ 1,
-    District == "Junagadh"                                ~ 9,
-    District == "Dahod"                                   ~ 8,
-    District == "Narmada"                                 ~ 14,
-    District == "Patan"                                   ~ 17,
-    District == "Ahwa-Dang"                               ~ 26,
-    District == "Jamnagar"                                ~ 11,
-    District == "Navsari"                                 ~ 15,
-    District == "Porbandar"                               ~ 20,
-    District == "Valsad"                                  ~ 25,
-    District == "Surendranagar"                           ~ 24,
-    District == "Bhavnagar"                               ~ 3,
-    District == "Kutch-Bhuj"                              ~ 12,
+  mutate(across(everything(), ~replace_na(., 0))) %>% 
+  mutate(dist_code = case_when(
+    District == "A'bad City"       ~ 7.1,
+    District == "A'bad Rural"      ~ 7.2,
+    District == "Vadodara City"    ~ 19.1,
+    District == "Vadodara Rural"   ~ 19.2,
+    District == "Westpol Vadodara" ~ 19.3,
+    District == "Surat City"       ~ 18.1,
+    District == "Surat Rural"      ~ 18.2,
+    District == "Rajkot City"      ~ 22.1,
+    District == "Rajkot Rural"     ~ 22.2,
+    District == "Anand"            ~ 2,
+    District == "Godhra"           ~ 16,
+    District == "Sabarkantha"      ~ 23,
+    District == "Kheda"            ~ 10,
+    District == "Mehsana"          ~ 13,
+    District == "Banaskantha"      ~ 4,
+    District == "Bharuch"          ~ 5,
+    District == "Gandhinagar"      ~ 6,
+    District == "Amreli"           ~ 1,
+    District == "Junagadh"         ~ 9,
+    District == "Dahod"            ~ 8,
+    District == "Narmada"          ~ 14,
+    District == "Patan"            ~ 17,
+    District == "Ahwa-Dang"        ~ 26,
+    District == "Jamnagar"         ~ 11,
+    District == "Navsari"          ~ 15,
+    District == "Porbandar"        ~ 20,
+    District == "Valsad"           ~ 25,
+    District == "Surendranagar"    ~ 24,
+    District == "Bhavnagar"        ~ 3,
+    District == "Kutch-Bhuj"       ~ 12,
     TRUE ~ NA_real_
-  ))  %>%
-  filter(Sr_No != "Total") %>%          # remove total row
-  mutate(District = case_when(
-    District %in% c("A'bad City", "A'bad Rural")             ~ "Ahmedabad",
-    District %in% c("Vadodara City", "Vadodara Rural",
-                    "Westpol Vadodara")                       ~ "Vadodara",
-    District %in% c("Surat City", "Surat Rural")             ~ "Surat",
-    District %in% c("Rajkot City", "Rajkot Rural")           ~ "Rajkot",
-    TRUE ~ District
   )) %>%
+  filter(Sr_No != "Total") %>%
   group_by(dist_code, District) %>%
   summarise(
     Dargah       = sum(Dargah,       na.rm = TRUE),
@@ -172,7 +169,6 @@ riots <- read.csv("communal_riots_table.csv") %>%
     Not_Repaired = sum(Not_Repaired, na.rm = TRUE),
     .groups = "drop"
   )
-
 
 View(riots)
 ```
@@ -228,11 +224,6 @@ final %>%
   
 ```
 
-```{r}
-#muslim_lm <- lm(total_muslim_destroyed~1+log(total_persons)+pop_per_person, data = final)
-#summary(muslim_lm)
-#plot(muslim_lm, which = 1:2)
-```
 
 ```{r}
 final_lm <- final %>% 
