@@ -11,7 +11,7 @@
 
 <meta name="author" content="Your Name" />
 
-<meta name="date" content="2026-04-02" />
+<meta name="date" content="2026-04-10" />
 
 <title>Gujarat Riots Analysis</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">Gujarat Riots Analysis</h1>
 <h4 class="author">Your Name</h4>
-<h4 class="date">2026-04-02</h4>
+<h4 class="date">2026-04-10</h4>
 
 </div>
 
@@ -472,61 +472,42 @@ religion_clean &lt;- raw %&gt;%
          total_persons  = as.numeric(total_persons),
          hindu_persons  = as.numeric(hindu_persons),
          muslim_persons = as.numeric(muslim_persons)) %&gt;%
-  drop_na() %&gt;%
-  mutate(dist_code = case_when(
-    dist_code == 7  &amp; grepl(&quot;Ahmadabad (M Corp&quot;, area_name, fixed = TRUE) ~ 7.1,
-    dist_code == 7  ~ 7.2,
-    dist_code == 19 &amp; grepl(&quot;Vadodara (M Corp&quot;, area_name, fixed = TRUE)  ~ 19.1,
-    dist_code == 19 ~ 19.2,
-    dist_code == 18 &amp; grepl(&quot;Surat (M Corp&quot;,    area_name, fixed = TRUE)  ~ 18.1,
-    dist_code == 18 ~ 18.2,
-    dist_code == 22 &amp; grepl(&quot;Rajkot (M Corp&quot;,   area_name, fixed = TRUE)  ~ 22.1,
-    dist_code == 22 ~ 22.2,
-    TRUE ~ as.numeric(dist_code)
-  ))</code></pre>
+  drop_na()</code></pre>
 <pre class="r"><code>riots &lt;- read.csv(&quot;communal_riots_table.csv&quot;) %&gt;%
   mutate(across(everything(), ~replace_na(., 0))) %&gt;%
   mutate(dist_code = case_when(
-    District == &quot;A&#39;bad City&quot;                                      ~ 7.1,
-    District == &quot;A&#39;bad Rural&quot;                                     ~ 7.2,
-    District == &quot;Vadodara City&quot;                                   ~ 19.1,
-    District %in% c(&quot;Vadodara Rural&quot;, &quot;Westpol Vadodara&quot;)        ~ 19.2,
-    District == &quot;Surat City&quot;                                      ~ 18.1,
-    District == &quot;Surat Rural&quot;                                     ~ 18.2,
-    District == &quot;Rajkot City&quot;                                     ~ 22.1,
-    District == &quot;Rajkot Rural&quot;                                    ~ 22.2,
-    District == &quot;Anand&quot;                                           ~ 2,
-    District == &quot;Godhra&quot;                                          ~ 16,
-    District == &quot;Sabarkantha&quot;                                     ~ 23,
-    District == &quot;Kheda&quot;                                           ~ 10,
-    District == &quot;Mehsana&quot;                                         ~ 13,
-    District == &quot;Banaskantha&quot;                                     ~ 4,
-    District == &quot;Bharuch&quot;                                         ~ 5,
-    District == &quot;Gandhinagar&quot;                                     ~ 6,
-    District == &quot;Amreli&quot;                                          ~ 1,
-    District == &quot;Junagadh&quot;                                        ~ 9,
-    District == &quot;Dahod&quot;                                           ~ 8,
-    District == &quot;Narmada&quot;                                         ~ 14,
-    District == &quot;Patan&quot;                                           ~ 17,
-    District == &quot;Ahwa-Dang&quot;                                       ~ 26,
-    District == &quot;Jamnagar&quot;                                        ~ 11,
-    District == &quot;Navsari&quot;                                         ~ 15,
-    District == &quot;Porbandar&quot;                                       ~ 20,
-    District == &quot;Valsad&quot;                                          ~ 25,
-    District == &quot;Surendranagar&quot;                                   ~ 24,
-    District == &quot;Bhavnagar&quot;                                       ~ 3,
-    District == &quot;Kutch-Bhuj&quot;                                      ~ 12,
+    District %in% c(&quot;A&#39;bad City&quot;,    &quot;A&#39;bad Rural&quot;)                        ~ 7,
+    District %in% c(&quot;Vadodara City&quot;, &quot;Vadodara Rural&quot;, &quot;Westpol Vadodara&quot;) ~ 19,
+    District %in% c(&quot;Surat City&quot;,    &quot;Surat Rural&quot;)                        ~ 18,
+    District %in% c(&quot;Rajkot City&quot;,   &quot;Rajkot Rural&quot;)                       ~ 22,
+    District == &quot;Anand&quot;        ~ 2,
+    District == &quot;Godhra&quot;       ~ 16,
+    District == &quot;Sabarkantha&quot;  ~ 23,
+    District == &quot;Kheda&quot;        ~ 10,
+    District == &quot;Mehsana&quot;      ~ 13,
+    District == &quot;Banaskantha&quot;  ~ 4,
+    District == &quot;Bharuch&quot;      ~ 5,
+    District == &quot;Gandhinagar&quot;  ~ 6,
+    District == &quot;Amreli&quot;       ~ 1,
+    District == &quot;Junagadh&quot;     ~ 9,
+    District == &quot;Dahod&quot;        ~ 8,
+    District == &quot;Narmada&quot;      ~ 14,
+    District == &quot;Patan&quot;        ~ 17,
+    District == &quot;Ahwa-Dang&quot;    ~ 26,
+    District == &quot;Jamnagar&quot;     ~ 11,
+    District == &quot;Navsari&quot;      ~ 15,
+    District == &quot;Porbandar&quot;    ~ 20,
+    District == &quot;Valsad&quot;       ~ 25,
+    District == &quot;Surendranagar&quot;~ 24,
+    District == &quot;Bhavnagar&quot;    ~ 3,
+    District == &quot;Kutch-Bhuj&quot;   ~ 12,
     TRUE ~ NA_real_
   )) %&gt;%
   mutate(District = case_when(
-    District == &quot;A&#39;bad City&quot;                               ~ &quot;Ahmedabad City&quot;,
-    District == &quot;A&#39;bad Rural&quot;                              ~ &quot;Ahmedabad Rural&quot;,
-    District == &quot;Vadodara City&quot;                            ~ &quot;Vadodara City&quot;,
-    District %in% c(&quot;Vadodara Rural&quot;, &quot;Westpol Vadodara&quot;) ~ &quot;Vadodara Rural&quot;,
-    District == &quot;Surat City&quot;                               ~ &quot;Surat City&quot;,
-    District == &quot;Surat Rural&quot;                              ~ &quot;Surat Rural&quot;,
-    District == &quot;Rajkot City&quot;                              ~ &quot;Rajkot City&quot;,
-    District == &quot;Rajkot Rural&quot;                             ~ &quot;Rajkot Rural&quot;,
+    dist_code == 7  ~ &quot;Ahmedabad&quot;,
+    dist_code == 19 ~ &quot;Vadodara&quot;,
+    dist_code == 18 ~ &quot;Surat&quot;,
+    dist_code == 22 ~ &quot;Rajkot&quot;,
     TRUE ~ District
   )) %&gt;%
   filter(Sr_No != &quot;Total&quot;) %&gt;%
@@ -553,12 +534,8 @@ religion_clean &lt;- raw %&gt;%
 <pre class="r"><code>final &lt;- clean_combine %&gt;%
   inner_join(riots, by = &quot;dist_code&quot;) %&gt;%
   mutate(total_muslim_destroyed = Dargah + Masjid + Madresa) %&gt;%
-  mutate(parent_dist_code = floor(dist_code)) %&gt;%
-  left_join(
-    earthquake,
-    by = c(&quot;parent_dist_code&quot; = &quot;dist_code&quot;)
-  ) %&gt;%
-  select(-parent_dist_code, -eq_district)</code></pre>
+  left_join(earthquake, by = c(&quot;dist_code&quot; = &quot;dist_code&quot;)) %&gt;%
+  select(-eq_district)</code></pre>
 <pre class="r"><code>summary_df &lt;- final %&gt;%
   filter(`MOTHER TONGUE` == &quot;5 GUJARATI&quot;) %&gt;%
   group_by(dist_code, District) %&gt;%
@@ -592,18 +569,18 @@ summary(regression_4)</code></pre>
 ##     pct_gujarati, data = summary_df_zero)
 ## 
 ## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -26.555 -20.683  -3.505  11.173  59.220 
+##    Min     1Q Median     3Q    Max 
+## -25.11 -19.46 -10.76  10.32  82.53 
 ## 
 ## Coefficients:
 ##                        Estimate Std. Error t value Pr(&gt;|t|)
-## (Intercept)             79.5316    55.3785   1.436    0.169
-## pct_hindu_minus_muslim  -0.5774     0.4390  -1.315    0.206
-## pct_gujarati            -0.2072     0.4514  -0.459    0.652
+## (Intercept)            45.89510   61.97052   0.741    0.470
+## pct_hindu_minus_muslim -0.35058    0.51236  -0.684    0.504
+## pct_gujarati            0.02923    0.54419   0.054    0.958
 ## 
-## Residual standard error: 24.79 on 17 degrees of freedom
-## Multiple R-squared:  0.09249,    Adjusted R-squared:  -0.01428 
-## F-statistic: 0.8662 on 2 and 17 DF,  p-value: 0.4383</code></pre>
+## Residual standard error: 30.23 on 16 degrees of freedom
+## Multiple R-squared:  0.03016,    Adjusted R-squared:  -0.09107 
+## F-statistic: 0.2488 on 2 and 16 DF,  p-value: 0.7827</code></pre>
 <pre class="r"><code># regresion with exogenous variable
 regression_earthquake &lt;- lm(total_muslim_destroyed ~ 1 + pct_hindu_minus_muslim + pct_gujarati + casualties, data = summary_df_zero)
 summary(regression_earthquake)</code></pre>
@@ -614,18 +591,241 @@ summary(regression_earthquake)</code></pre>
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -28.523 -17.273  -1.414  10.197  59.725 
+## -26.720 -20.223  -7.399   8.792  83.012 
 ## 
 ## Coefficients:
 ##                          Estimate Std. Error t value Pr(&gt;|t|)
-## (Intercept)            84.5616472 55.9459158   1.511    0.150
-## pct_hindu_minus_muslim -0.6126059  0.4429739  -1.383    0.186
-## pct_gujarati           -0.2178034  0.4539502  -0.480    0.638
-## casualties             -0.0004265  0.0004703  -0.907    0.378
+## (Intercept)            48.8225754 63.2151031   0.772    0.452
+## pct_hindu_minus_muslim -0.3706173  0.5222622  -0.710    0.489
+## pct_gujarati            0.0289441  0.5537956   0.052    0.959
+## casualties             -0.0003885  0.0005793  -0.671    0.513
 ## 
-## Residual standard error: 24.92 on 16 degrees of freedom
-## Multiple R-squared:  0.1368, Adjusted R-squared:  -0.025 
-## F-statistic: 0.8456 on 3 and 16 DF,  p-value: 0.4889</code></pre>
+## Residual standard error: 30.76 on 15 degrees of freedom
+## Multiple R-squared:  0.05839,    Adjusted R-squared:  -0.1299 
+## F-statistic: 0.3101 on 3 and 15 DF,  p-value: 0.8178</code></pre>
+<pre class="r"><code>housing &lt;- read.csv(&quot;gujarat_housing_composition.csv&quot;, header = FALSE, check.names = FALSE) %&gt;%
+  slice(6:n()) %&gt;%
+  select(1:13) %&gt;%
+  rename(
+    table_name        = V1,
+    state_code        = V2,
+    dist_code         = V3,
+    tehsil_city_code  = V4,
+    area_name         = V5,
+    total_rural_urban = V6,
+    total_total       = V7,
+    total_good        = V8,
+    total_livable     = V9,
+    total_dilapidated = V10,
+    residence_total   = V11,
+    residence_good    = V12,
+    residence_livable = V13
+  ) %&gt;%
+  mutate(across(c(total_total, total_good, total_livable, total_dilapidated,
+                  residence_total, residence_good, residence_livable),
+                ~as.numeric(gsub(&quot;,&quot;, &quot;&quot;, .)))) %&gt;%
+  mutate(state_code       = as.numeric(state_code),
+         dist_code        = as.numeric(dist_code),
+         tehsil_city_code = as.numeric(tehsil_city_code)) %&gt;%
+  filter(!is.na(dist_code), dist_code != 0) %&gt;%
+  filter(trimws(total_rural_urban) == &quot;Total&quot;) %&gt;%
+  filter(grepl(&quot;District&quot;, area_name) &amp; !grepl(&quot;City&quot;, area_name))
+View(housing)</code></pre>
+<pre class="r"><code>new_final &lt;- summary_df %&gt;%
+  full_join(housing, by = &quot;dist_code&quot;)
+
+View(new_final)</code></pre>
+<pre class="r"><code>regression_5 &lt;- lm(total_muslim_destroyed ~ 1 + pct_hindu_minus_muslim + pct_gujarati + residence_good + casualties, data = new_final)
+summary(regression_5)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = total_muslim_destroyed ~ 1 + pct_hindu_minus_muslim + 
+##     pct_gujarati + residence_good + casualties, data = new_final)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -30.794 -18.186   0.809   9.881  42.361 
+## 
+## Coefficients:
+##                          Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)            -4.552e+00  4.081e+01  -0.112   0.9124   
+## pct_hindu_minus_muslim -5.660e-01  3.641e-01  -1.555   0.1374   
+## pct_gujarati            4.793e-01  3.856e-01   1.243   0.2298   
+## residence_good          1.418e-04  4.204e-05   3.372   0.0034 **
+## casualties             -6.313e-04  4.508e-04  -1.400   0.1784   
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 23.56 on 18 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.4181, Adjusted R-squared:  0.2888 
+## F-statistic: 3.233 on 4 and 18 DF,  p-value: 0.03643</code></pre>
+<pre class="r"><code>regression_6 &lt;- lm(total_muslim_destroyed ~ 1 + pct_hindu_minus_muslim + pct_gujarati + residence_good, data = new_final)
+summary(regression_6)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = total_muslim_destroyed ~ 1 + pct_hindu_minus_muslim + 
+##     pct_gujarati + residence_good, data = new_final)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -31.178 -19.361  -1.359  13.058  45.305 
+## 
+## Coefficients:
+##                          Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)            -2.946e+00  4.181e+01  -0.070  0.94457   
+## pct_hindu_minus_muslim -5.316e-01  3.723e-01  -1.428  0.16955   
+## pct_gujarati            4.310e-01  3.937e-01   1.095  0.28725   
+## residence_good          1.296e-04  4.215e-05   3.073  0.00625 **
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 24.15 on 19 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.3547, Adjusted R-squared:  0.2528 
+## F-statistic: 3.481 on 3 and 19 DF,  p-value: 0.03624</code></pre>
+<pre class="r"><code>regression_7 &lt;- lm(total_muslim_destroyed ~ 1 + pct_hindu_minus_muslim + pct_gujarati + casualties, data = new_final)
+summary(regression_7)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = total_muslim_destroyed ~ 1 + pct_hindu_minus_muslim + 
+##     pct_gujarati + casualties, data = new_final)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -25.995 -17.155 -12.830   9.168  87.503 
+## 
+## Coefficients:
+##                          Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)            37.6953687 48.2875417   0.781    0.445
+## pct_hindu_minus_muslim -0.3685070  0.4467428  -0.825    0.420
+## pct_gujarati            0.1045262  0.4591208   0.228    0.822
+## casualties             -0.0003162  0.0005484  -0.577    0.571
+## 
+## Residual standard error: 29.3 on 19 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.05053,    Adjusted R-squared:  -0.09939 
+## F-statistic: 0.337 on 3 and 19 DF,  p-value: 0.7987</code></pre>
+<pre class="r"><code>step_wise &lt;- new_final %&gt;%
+  select(total_muslim_destroyed, pct_hindu_minus_muslim, pct_gujarati, casualties, residence_good)
+
+regression_step &lt;- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + residence_good + casualties, data = step_wise)
+
+forward_model &lt;- step(regression_step, direction = &quot;forward&quot;)</code></pre>
+<pre><code>## Start:  AIC=149.71
+## total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + 
+##     residence_good + casualties</code></pre>
+<pre class="r"><code>summary(forward_model)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + 
+##     residence_good + casualties, data = step_wise)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -30.794 -18.186   0.809   9.881  42.361 
+## 
+## Coefficients:
+##                          Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)            -4.552e+00  4.081e+01  -0.112   0.9124   
+## pct_gujarati            4.793e-01  3.856e-01   1.243   0.2298   
+## pct_hindu_minus_muslim -5.660e-01  3.641e-01  -1.555   0.1374   
+## residence_good          1.418e-04  4.204e-05   3.372   0.0034 **
+## casualties             -6.313e-04  4.508e-04  -1.400   0.1784   
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 23.56 on 18 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.4181, Adjusted R-squared:  0.2888 
+## F-statistic: 3.233 on 4 and 18 DF,  p-value: 0.03643</code></pre>
+<pre class="r"><code>regression_first &lt;- lm(total_muslim_destroyed ~ 1 + pct_gujarati, data = new_final)
+summary(regression_first)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = total_muslim_destroyed ~ 1 + pct_gujarati, data = new_final)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -21.637 -18.275  -8.748   5.389  83.453 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)  14.04350   38.28934   0.367    0.717
+## pct_gujarati  0.08019    0.44720   0.179    0.859
+## 
+## Residual standard error: 28.58 on 21 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.001529,   Adjusted R-squared:  -0.04602 
+## F-statistic: 0.03216 on 1 and 21 DF,  p-value: 0.8594</code></pre>
+<pre class="r"><code>regression_second &lt;- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim, data = new_final)
+summary(regression_second)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim, 
+##     data = new_final)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -24.89 -17.65 -11.91  10.03  87.05 
+## 
+## Coefficients:
+##                        Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)            36.63315   47.44023   0.772    0.449
+## pct_gujarati            0.09614    0.45117   0.213    0.833
+## pct_hindu_minus_muslim -0.35941    0.43895  -0.819    0.423
+## 
+## Residual standard error: 28.81 on 20 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.03391,    Adjusted R-squared:  -0.06269 
+## F-statistic: 0.351 on 2 and 20 DF,  p-value: 0.7082</code></pre>
+<pre class="r"><code>regression_third &lt;- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + casualties, data = new_final)
+summary(regression_third)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + 
+##     casualties, data = new_final)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -25.995 -17.155 -12.830   9.168  87.503 
+## 
+## Coefficients:
+##                          Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)            37.6953687 48.2875417   0.781    0.445
+## pct_gujarati            0.1045262  0.4591208   0.228    0.822
+## pct_hindu_minus_muslim -0.3685070  0.4467428  -0.825    0.420
+## casualties             -0.0003162  0.0005484  -0.577    0.571
+## 
+## Residual standard error: 29.3 on 19 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.05053,    Adjusted R-squared:  -0.09939 
+## F-statistic: 0.337 on 3 and 19 DF,  p-value: 0.7987</code></pre>
+<pre class="r"><code>regression_fourth &lt;- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + casualties + total_good, data = new_final)
+summary(regression_fourth)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + 
+##     casualties + total_good, data = new_final)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -30.638 -16.902   0.521  10.718  43.260 
+## 
+## Coefficients:
+##                          Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)            -1.060e+01  4.208e+01  -0.252  0.80389   
+## pct_gujarati            5.212e-01  3.956e-01   1.317  0.20427   
+## pct_hindu_minus_muslim -5.356e-01  3.679e-01  -1.456  0.16260   
+## casualties             -6.219e-04  4.569e-04  -1.361  0.19025   
+## total_good              1.372e-04  4.219e-05   3.253  0.00442 **
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 23.89 on 18 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.402,  Adjusted R-squared:  0.2691 
+## F-statistic: 3.025 on 4 and 18 DF,  p-value: 0.04514</code></pre>
 
 
 

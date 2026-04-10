@@ -11,6 +11,7 @@ library(dplyr)
 library(readxl)
 library(ggplot2)
 library(broom)
+library(readr)
 ```
 
 ```{r language}
@@ -191,5 +192,97 @@ summary(regression_4)
 # regresion with exogenous variable
 regression_earthquake <- lm(total_muslim_destroyed ~ 1 + pct_hindu_minus_muslim + pct_gujarati + casualties, data = summary_df_zero)
 summary(regression_earthquake)
+```
+
+```{r housing composition}
+housing <- read.csv("gujarat_housing_composition.csv", header = FALSE, check.names = FALSE) %>%
+  slice(6:n()) %>%
+  select(1:13) %>%
+  rename(
+    table_name        = V1,
+    state_code        = V2,
+    dist_code         = V3,
+    tehsil_city_code  = V4,
+    area_name         = V5,
+    total_rural_urban = V6,
+    total_total       = V7,
+    total_good        = V8,
+    total_livable     = V9,
+    total_dilapidated = V10,
+    residence_total   = V11,
+    residence_good    = V12,
+    residence_livable = V13
+  ) %>%
+  mutate(across(c(total_total, total_good, total_livable, total_dilapidated,
+                  residence_total, residence_good, residence_livable),
+                ~as.numeric(gsub(",", "", .)))) %>%
+  mutate(state_code       = as.numeric(state_code),
+         dist_code        = as.numeric(dist_code),
+         tehsil_city_code = as.numeric(tehsil_city_code)) %>%
+  filter(!is.na(dist_code), dist_code != 0) %>%
+  filter(trimws(total_rural_urban) == "Total") %>%
+  filter(grepl("District", area_name) & !grepl("City", area_name))
+View(housing)
+```
+
+```{r final final???}
+new_final <- summary_df %>%
+  full_join(housing, by = "dist_code")
+
+View(new_final)
+```
+
+```{r}
+regression_5 <- lm(total_muslim_destroyed ~ 1 + pct_hindu_minus_muslim + pct_gujarati + residence_good + casualties, data = new_final)
+summary(regression_5)
+```
+
+```{r}
+regression_6 <- lm(total_muslim_destroyed ~ 1 + pct_hindu_minus_muslim + pct_gujarati + residence_good, data = new_final)
+summary(regression_6)
+```
+
+```{r}
+regression_7 <- lm(total_muslim_destroyed ~ 1 + pct_hindu_minus_muslim + pct_gujarati + casualties, data = new_final)
+summary(regression_7)
+```
+
+```{r}
+step_wise <- new_final %>%
+  select(total_muslim_destroyed, pct_hindu_minus_muslim, pct_gujarati, casualties, residence_good)
+
+regression_step <- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + residence_good + casualties, data = step_wise)
+
+forward_model <- step(regression_step, direction = "forward")
+
+summary(forward_model)
+```
+
+```{r step}
+regression_first <- lm(total_muslim_destroyed ~ 1 + pct_gujarati, data = new_final)
+summary(regression_first)
+
+regression_second <- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim, data = new_final)
+summary(regression_second)
+
+regression_third <- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + casualties, data = new_final)
+summary(regression_third)
+
+regression_fourth <- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + casualties + total_good, data = new_final)
+summary(regression_fourth)
+```
+
+```{r}
+regression_first <- lm(total_muslim_destroyed ~ 1 + pct_gujarati, data = new_final)
+summary(regression_first)
+
+regression_second <- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim, data = new_final)
+summary(regression_second)
+
+regression_third <- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + total_good, data = new_final)
+summary(regression_third)
+
+regression_fourth <- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + total_good + casualties, data = new_final)
+summary(regression_fourth)
 ```
 
