@@ -270,6 +270,8 @@ summary(regression_third)
 
 regression_fourth <- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + casualties + total_good, data = new_final)
 summary(regression_fourth)
+
+plot(regression_fourth, which = 1:2)
 ```
 
 ```{r}
@@ -284,5 +286,59 @@ summary(regression_third)
 
 regression_fourth <- lm(total_muslim_destroyed ~ 1 + pct_gujarati + pct_hindu_minus_muslim + total_good + casualties, data = new_final)
 summary(regression_fourth)
+
+plot(regression_fourth, which = 1:2)
 ```
 
+```{r add-population}
+# get district population totals
+district_population <- clean_combine %>%
+  group_by(dist_code) %>%
+  summarise(total_persons = sum(total_persons, na.rm = TRUE), .groups = "drop")
+
+# join population back to dataset
+new_final <- new_final %>%
+  left_join(district_population, by = "dist_code")
+
+View(new_final)
+```
+
+```{r per-capita}
+# create per-capita measures using district population
+
+new_final <- new_final %>%
+  mutate(
+    muslim_destroyed_per_person = total_muslim_destroyed / total_persons,
+    good_housing_per_person     = total_good / total_persons
+  )
+
+View(new_final)
+```
+
+```{r}
+regression_first <- lm(muslim_destroyed_per_person ~ 1 + pct_gujarati, data = new_final)
+summary(regression_first)
+
+regression_second <- lm(muslim_destroyed_per_person ~ 1 + pct_gujarati + pct_hindu_minus_muslim, data = new_final)
+summary(regression_second)
+
+regression_third <- lm(muslim_destroyed_per_person ~ 1 + pct_gujarati + pct_hindu_minus_muslim + good_housing_per_person, data = new_final)
+summary(regression_third)
+
+regression_fourth <- lm(muslim_destroyed_per_person ~ 1 + pct_gujarati + pct_hindu_minus_muslim + good_housing_per_person + casualties, data = new_final)
+summary(regression_fourth)
+
+plot(regression_fourth, which = 1:2)
+```
+
+```{r}
+regression_third <- lm(I(muslim_destroyed_per_person  * 100000) ~ 1 + pct_gujarati+ I(pct_hindu_minus_muslim^2) + good_housing_per_person, data = new_final)
+summary(regression_third)
+```
+
+```{r}
+regression_third <- lm(I(muslim_destroyed_per_person  * 100000) ~ 1 + pct_gujarati+ pct_hindu_minus_muslim + good_housing_per_person, data = new_final)
+summary(regression_third)
+```
+
+>> find eocn sig --> sd change outcome quartiles --> for sig
