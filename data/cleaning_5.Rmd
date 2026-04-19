@@ -1,0 +1,278 @@
+---
+title: "Gujarat Riots Analysis"
+author: "Your Name"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyr)
+library(dplyr)
+library(readxl)
+library(ggplot2)
+library(broom)
+library(readr)
+```
+
+```{r language}
+language <- read_excel("language_mother_tounge_city.xls") %>%
+  select(-...9, -...10, -...12, -...13, -...15, -...16)
+language <- language[-1, ]
+colnames(language) <- language[1, ]
+language <- language[-1, ] %>%
+  drop_na() %>%
+  filter(grepl("000$", MOTHER)) %>%
+  group_by(TOWN) %>%
+  mutate(TOWN    = as.numeric(TOWN),
+         TOTAL   = as.numeric(TOTAL),
+         PERCENT = round(TOTAL / sum(TOTAL) * 100, 5))
+```
+
+```{r towns}
+towns <- read_excel("town_directory.xls") %>%
+  select(DIST_CODE, THSIL_CODE, TOWN_CODE, TOWN_NAME, CLASS, C_STATUS, AREA, POP_2001, DENSITY) %>%
+  rename(TOWN = TOWN_CODE) %>%
+  drop_na() %>%
+  mutate(TOWN     = as.numeric(TOWN),
+         AREA     = as.numeric(AREA),
+         POP_2001 = as.numeric(POP_2001),
+         DENSITY  = as.numeric(DENSITY))
+```
+
+```{r religion}
+raw <- read_excel("religion_town.xls", col_names = FALSE, skip = 4)
+
+colnames(raw) <- c(
+  "table_name", "state_code", "dist_code", "tehsil_code", "town_code", "area_name",
+  "total_rural_urban",
+  "total_persons", "total_males", "total_females",
+  "hindu_persons", "hindu_males", "hindu_females",
+  "muslim_persons", "muslim_males", "muslim_females",
+  "christian_persons", "christian_males", "christian_females",
+  "sikh_persons", "sikh_males", "sikh_females",
+  "buddhist_persons", "buddhist_males", "buddhist_females",
+  "jain_persons", "jain_males", "jain_females",
+  "other_religion_persons", "other_religion_males", "other_religion_females",
+  "religion_not_stated_persons", "religion_not_stated_males", "religion_not_stated_females"
+)
+
+religion_clean <- raw %>%
+  filter(!is.na(area_name), area_name != "") %>%
+  filter(!total_persons %in% c("1", "Persons")) %>%
+  mutate(across(c(dist_code, state_code, tehsil_code, town_code), as.numeric)) %>%
+  filter(dist_code != 0 & town_code != 0) %>%
+  mutate(across(total_persons:religion_not_stated_females, as.numeric))
+
+religion_district <- raw %>%
+  filter(!is.na(area_name), area_name != "") %>%
+  filter(!total_persons %in% c("1", "Persons")) %>%
+  mutate(across(c(dist_code, state_code, tehsil_code, town_code), as.numeric)) %>%
+  filter(dist_code %in% c(5, 23, 26) & town_code == 0 & tehsil_code == 0) %>%
+  mutate(across(total_persons:religion_not_stated_females, as.numeric))
+```
+
+```{r riots}
+riots <- read.csv("communal_riots_table.csv") %>%
+  mutate(across(everything(), ~replace_na(., 0))) %>%
+  mutate(dist_code = case_when(
+    District %in% c("A'bad City",    "A'bad Rural")                        ~ 7,
+    District %in% c("Vadodara City", "Vadodara Rural", "Westpol Vadodara") ~ 19,
+    District %in% c("Surat City",    "Surat Rural")                        ~ 18,
+    District %in% c("Rajkot City",   "Rajkot Rural")                       ~ 22,
+    District == "Anand"         ~ 2,
+    District == "Godhra"        ~ 16,
+    District == "Sabarkantha"   ~ 23,
+    District == "Kheda"         ~ 10,
+    District == "Mehsana"       ~ 13,
+    District == "Banaskantha"   ~ 4,
+    District == "Bharuch"       ~ 5,
+    District == "Gandhinagar"   ~ 6,
+    District == "Amreli"        ~ 1,
+    District == "Junagadh"      ~ 9,
+    District == "Dahod"         ~ 8,
+    District == "Narmada"       ~ 14,
+    District == "Patan"         ~ 17,
+    District == "Ahwa-Dang"     ~ 26,
+    District == "Jamnagar"      ~ 11,
+    District == "Navsari"       ~ 15,
+    District == "Porbandar"     ~ 20,
+    District == "Valsad"        ~ 25,
+    District == "Surendranagar" ~ 24,
+    District == "Bhavnagar"     ~ 3,
+    District == "Kutch-Bhuj"    ~ 12,
+    TRUE ~ NA_real_
+  )) %>%
+  mutate(District = case_when(
+    dist_code == 7  ~ "Ahmedabad",
+    dist_code == 19 ~ "Vadodara",
+    dist_code == 18 ~ "Surat",
+    dist_code == 22 ~ "Rajkot",
+    TRUE ~ District
+  )) %>%
+  filter(Sr_No != "Total") %>%
+  group_by(dist_code, District) %>%
+  summarise(
+    Dargah       = sum(Dargah,       na.rm = TRUE),
+    Masjid       = sum(Masjid,       na.rm = TRUE),
+    Madresa      = sum(Madresa,      na.rm = TRUE),
+    Temple       = sum(Temple,       na.rm = TRUE),
+    Church       = sum(Church,       na.rm = TRUE),
+    Total        = sum(Total,        na.rm = TRUE),
+    Repaired     = sum(Repaired,     na.rm = TRUE),
+    Not_Repaired = sum(Not_Repaired, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r combine}
+combined <- religion_clean %>%
+  inner_join(language, by = c("town_code" = "TOWN")) %>%
+  inner_join(towns,   by = c("town_code" = "TOWN"))
+
+clean_combine <- combined %>%
+  select(table_name, area_name, town_code, state_code, dist_code,
+         total_persons, hindu_persons, muslim_persons, christian_persons,
+         sikh_persons, jain_persons, buddhist_persons, other_religion_persons,
+         `MOTHER TONGUE`, PERCENT, AREA, DENSITY) %>%
+  group_by(town_code) %>%
+  mutate(pop_per_person = total_persons / AREA,
+         total_persons  = as.numeric(total_persons),
+         hindu_persons  = as.numeric(hindu_persons),
+         muslim_persons = as.numeric(muslim_persons)) %>%
+  drop_na()
+
+missing_districts <- religion_district %>%
+  select(table_name, area_name, town_code, state_code, dist_code,
+         total_persons, hindu_persons, muslim_persons, christian_persons,
+         sikh_persons, jain_persons, buddhist_persons, other_religion_persons) %>%
+  mutate(
+    `MOTHER TONGUE` = "5 GUJARATI",
+    PERCENT         = NA_real_,
+    AREA            = NA_real_,
+    DENSITY         = NA_real_,
+    pop_per_person  = NA_real_,
+    total_persons   = as.numeric(total_persons),
+    hindu_persons   = as.numeric(hindu_persons),
+    muslim_persons  = as.numeric(muslim_persons)
+  )
+
+clean_combine <- bind_rows(clean_combine, missing_districts)
+```
+
+```{r housing}
+housing <- read.csv("gujarat_housing_composition.csv", header = FALSE, check.names = FALSE) %>%
+  slice(6:n()) %>%
+  select(1:13) %>%
+  rename(
+    table_name        = V1,
+    state_code        = V2,
+    dist_code         = V3,
+    tehsil_city_code  = V4,
+    area_name         = V5,
+    total_rural_urban = V6,
+    total_total       = V7,
+    total_good        = V8,
+    total_livable     = V9,
+    total_dilapidated = V10,
+    residence_total   = V11,
+    residence_good    = V12,
+    residence_livable = V13
+  ) %>%
+  mutate(across(c(total_total, total_good, total_livable, total_dilapidated,
+                  residence_total, residence_good, residence_livable),
+                ~as.numeric(gsub(",", "", .)))) %>%
+  mutate(state_code       = as.numeric(state_code),
+         dist_code        = as.numeric(dist_code),
+         tehsil_city_code = as.numeric(tehsil_city_code)) %>%
+  filter(!is.na(dist_code), dist_code != 0) %>%
+  filter(trimws(total_rural_urban) == "Total") %>%
+  filter(grepl("District", area_name) & !grepl("City", area_name)) %>%
+  select(dist_code, total_total, total_good, total_livable, total_dilapidated,
+         residence_total, residence_good, residence_livable) %>%
+  mutate(pct_dilapidated = total_dilapidated / total_total * 100)
+```
+
+```{r final}
+final <- clean_combine %>%
+  left_join(riots, by = "dist_code") %>%
+  mutate(total_muslim_destroyed = Dargah + Masjid + Madresa)
+```
+
+```{r summary}
+summary_df <- final %>%
+  filter(`MOTHER TONGUE` == "5 GUJARATI") %>%
+  group_by(dist_code, District) %>%
+  summarize(
+    pct_gujarati           = mean(PERCENT,                na.rm = TRUE),
+    total_muslim_destroyed = mean(total_muslim_destroyed, na.rm = TRUE),
+    pct_hindu_minus_muslim = mean((hindu_persons - muslim_persons) /
+                                    total_persons * 100,  na.rm = TRUE),
+    total_persons          = sum(total_persons,           na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r manual-districts}
+summary_df <- summary_df %>%
+  mutate(
+    District = case_when(
+      dist_code == 5  ~ "Bharuch",
+      dist_code == 23 ~ "Sabarkantha",
+      dist_code == 26 ~ "Ahwa-Dang",
+      TRUE ~ District
+    ),
+    total_muslim_destroyed = case_when(
+      dist_code == 5  ~ 7,
+      dist_code == 23 ~ 0,
+      dist_code == 26 ~ 0,
+      TRUE ~ total_muslim_destroyed
+    ),
+    pct_gujarati = case_when(
+      dist_code == 5  ~ 84.97,
+      dist_code == 23 ~ 97.85,
+      TRUE ~ pct_gujarati
+    ),
+    total_persons = case_when(
+      dist_code == 5  ~ 1370104,
+      dist_code == 23 ~ 2083416,
+      dist_code == 26 ~ 186712,
+      TRUE ~ total_persons
+    )
+  )
+```
+
+```{r final-before-capita}
+new_final <- summary_df %>%
+  left_join(housing, by = "dist_code")
+```
+
+```{r per-capita}
+new_final <- new_final %>%
+  mutate(
+    muslim_destroyed_per_capita    = total_muslim_destroyed / total_persons,
+    good_housing_per_capita        = total_good             / total_persons,
+    livable_housing_per_capita     = total_livable          / total_persons,
+    dilapidated_housing_per_capita = total_dilapidated      / total_persons,
+    pct_dilapidated                = total_dilapidated      / total_total   * 100
+  )
+```
+
+```{r regression}
+regression <- lm(I(muslim_destroyed_per_capita * 100000) ~ 1 + pct_gujarati +
+                   I(pct_hindu_minus_muslim ^ 2) + good_housing_per_capita,
+                 data = new_final)
+summary(regression)
+plot(regression, which = 1:2)
+```
+
+```{r remove-district-2}
+new_final_no2 <- new_final %>%
+  filter(dist_code != 2)
+
+regression_no2 <- lm(I(muslim_destroyed_per_capita * 100000) ~ 1 + pct_gujarati +
+                   I(pct_hindu_minus_muslim ^ 2) + good_housing_per_capita,
+                 data = new_final_no2)
+summary(regression_no2)
+plot(regression_no2, which = 1:2)
+```

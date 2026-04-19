@@ -96,7 +96,7 @@ riots <- read.csv("communal_riots_table.csv") %>%
     District == "Kheda"        ~ 10,
     District == "Mehsana"      ~ 13,
     District == "Banaskantha"  ~ 4,
-    District == "Bharuch"      ~ 5,
+    District == "Bharuch"      ~ 21,
     District == "Gandhinagar"  ~ 6,
     District == "Amreli"       ~ 1,
     District == "Junagadh"     ~ 9,
