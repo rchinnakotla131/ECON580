@@ -12,7 +12,8 @@ This paper examines the relationship between social and demographic determinants
 ## How to Run
 1. Clone the repo
 2. Open the `.Rmd` files in RStudio
-3. Knit GujaratFinal.Rmd to reproduce the analysis
+3. Knit `GujaratFinal.Rmd` to reproduce the analysis
+4. All the other `.Rmd` files are cleaning for the final file
 
 ## Dependencies
 - R / RStudio
