@@ -1,0 +1,114 @@
+```{r}
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+install.packages(c("geodata", "sf", "ggplot2", "dplyr"))
+
+library(geodata)
+library(sf)
+library(ggplot2)
+library(dplyr)
+
+# 1. Download shapefile via geodata
+india <- gadm(country = "IND", level = 2, path = tempdir())
+gujarat <- india[india$NAME_1 == "Gujarat", ]
+gujarat_sf <- st_as_sf(gujarat)
+
+# Check exact district names
+print(gujarat_sf$NAME_2)
+
+# 2. Your data
+df <- data.frame(
+  district = c("Amreli","Anand","Bhavnagar","Banaskantha","Bharuch",
+               "Gandhinagar","Ahmedabad","Dahod","Junagadh","Kheda",
+               "Jamnagar","Kutch-Bhuj","Mehsana","Narmada","Navsari",
+               "Godhra","Patan","Surat","Vadodara","Porbandar",
+               "Rajkot","Sabarkantha","Surendranagar","Valsad"),
+  value = c(2.869610055, 0.789011293, 0.200215773, 0.249798873,
+            -9.795597338, 1.591040319, 0.006262659, -13.943726290,
+            -7.137939671, 0.789011293, -13.772039677, 3.252076304,
+            4.783940439, -9.795597338, 5.149083595, -13.943726290,
+            0.249798873, 12.926220655, 0.148470679, -7.137939671,
+            -12.078305469, NA, 5.149083595, 2.615756196)
+)
+
+# 3. Fix name mismatches to match GADM spelling — adjust after checking print() above
+name_map <- c(
+  "Kutch-Bhuj" = "Kachchh",
+  "Godhra"     = "Panch Mahals"
+  # add others as needed
+)
+df$district_matched <- ifelse(df$district %in% names(name_map),
+                               name_map[df$district],
+                               df$district)
+
+# 4. Merge
+gujarat_merged <- gujarat_sf %>%
+  left_join(df, by = c("NAME_2" = "district_matched"))
+
+# 5. Plot
+ggplot(gujarat_merged) +
+  geom_sf(aes(fill = value), color = "white", linewidth = 0.3) +
+  scale_fill_gradient2(
+    low  = "red",
+    mid  = "lightyellow",
+    high = "blue",
+    midpoint  = 0,
+    na.value  = "grey80",
+    name = "Value"
+  ) +
+  labs(
+    title   = "Gujarat Districts",
+    caption = "Grey = missing data"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text  = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank()
+  )
+
+ggsave("gujarat_map.png", dpi = 300, width = 10, height = 7)
+```
+
+```{r}
+install.packages(c("leaflet", "rjson"))
+
+library(leaflet)
+
+# Download Gujarat GeoJSON directly from web (no shapefile needed)
+gujarat_geojson <- "https://raw.githubusercontent.com/datameet/maps/master/Districts/gujarat.geojson"
+
+df <- data.frame(
+  district = c("Amreli","Anand","Bhavnagar","Banaskantha","Bharuch",
+               "Gandhinagar","Ahmedabad","Dahod","Junagadh","Kheda",
+               "Jamnagar","Kutch","Mehsana","Narmada","Navsari",
+               "Panchmahal","Patan","Surat","Vadodara","Porbandar",
+               "Rajkot","Sabarkantha","Surendranagar","Valsad"),
+  value = c(2.869610055, 0.789011293, 0.200215773, 0.249798873,
+            -9.795597338, 1.591040319, 0.006262659, -13.943726290,
+            -7.137939671, 0.789011293, -13.772039677, 3.252076304,
+            4.783940439, -9.795597338, 5.149083595, -13.943726290,
+            0.249798873, 12.926220655, 0.148470679, -7.137939671,
+            -12.078305469, NA, 5.149083595, 2.615756196)
+)
+
+library(leaflet)
+library(geojsonio)  # install.packages("geojsonio")
+
+guj <- geojsonio::geojson_read(gujarat_geojson, what = "sp")
+
+# Merge data
+guj@data <- merge(guj@data, df, by.x = "DISTRICT", by.y = "district", all.x = TRUE)
+
+pal <- colorNumeric("RdYlBu", domain = df$value, na.color = "grey")
+
+leaflet(guj) %>%
+  addPolygons(
+    fillColor = ~pal(value),
+    fillOpacity = 0.8,
+    color = "white",
+    weight = 1,
+    label = ~paste0(DISTRICT, ": ", round(value, 2))
+  ) %>%
+  addLegend(pal = pal, values = ~value, title = "Value")
+```
+
